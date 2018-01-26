@@ -23,6 +23,17 @@ def get_spectrograms(sound_file):
     Returns:
       Transposed S: A 2d array. A transposed melspectrogram with shape of (T, n_mels)
       Transposed magnitude: A 2d array.Has shape of (T, 1+hp.n_fft//2)
+      
+    sr = 22050 # Sampling rate. Paper => 24000
+    n_fft = 2048 # fft points (samples)
+    frame_shift = 0.0125 # seconds
+    frame_length = 0.05 # seconds
+    hop_length = int(sr*frame_shift) # samples  This is dependent on the frame_shift.
+    win_length = int(sr*frame_length) # samples This is dependent on the frame_length.
+    n_mels = 80 # Number of Mel banks to generate
+    power = 1.2 # Exponent for amplifying the predicted magnitude
+    n_iter = 30 # Number of inversion iterations 
+    use_log_magnitude = True # if False, use magnitude
     '''
     # Loading sound file
     y, sr = librosa.load(sound_file, sr=hp.sr) # or set sr to hp.sr.

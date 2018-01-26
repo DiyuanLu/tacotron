@@ -9,10 +9,10 @@ from __future__ import print_function
 
 from hyperparams import Hyperparams as hp
 import tensorflow as tf
-
+import ipdb
 
 def embed(inputs, vocab_size, num_units, zero_pad=True, scope="embedding", reuse=None):
-    '''Embeds a given tensor. 
+    '''Embeds a given tensor.  embed(inputs, len(char2idx), hp.embed_size=256)
     
     Args:
       inputs: A `Tensor` with type `int32` or `int64` containing the ids
@@ -30,6 +30,7 @@ def embed(inputs, vocab_size, num_units, zero_pad=True, scope="embedding", reuse
         should be `num_units`.
     '''
     with tf.variable_scope(scope, reuse=reuse):
+        # trainable latent space representation of each character
         lookup_table = tf.get_variable('lookup_table', 
                                        dtype=tf.float32, 
                                        shape=[vocab_size, num_units],
@@ -37,6 +38,7 @@ def embed(inputs, vocab_size, num_units, zero_pad=True, scope="embedding", reuse
         if zero_pad:
             lookup_table = tf.concat((tf.zeros(shape=[1, num_units]), 
                                       lookup_table[1:, :]), 0)
+        ###ipdb.set_trace() #lookup_table shape=(30, 256)
     return tf.nn.embedding_lookup(lookup_table, inputs)   
  
 def normalize(inputs, 
@@ -212,7 +214,8 @@ def gru(inputs, num_units=None, bidirection=False, scope="gru", reuse=None):
         if num_units is None:
             num_units = inputs.get_shape().as_list[-1]
             
-        cell = tf.contrib.rnn.GRUCell(num_units)  
+        cell = tf.contrib.rnn.GRUCell(num_units)
+          
         if bidirection: 
             cell_bw = tf.contrib.rnn.GRUCell(num_units)
             outputs, _ = tf.nn.bidirectional_dynamic_rnn(cell, cell_bw, inputs, 
@@ -221,7 +224,7 @@ def gru(inputs, num_units=None, bidirection=False, scope="gru", reuse=None):
         else:
             outputs, _ = tf.nn.dynamic_rnn(cell, inputs, 
                                            dtype=tf.float32)
-            return outputs
+            return outputs    # shape=(32, ?, 128)
 
 def attention_decoder(inputs, memory, num_units=None, scope="attention_decoder", reuse=None):
     '''Applies a GRU to `inputs`, while attending `memory`.
@@ -264,15 +267,37 @@ def prenet(inputs, is_training=True, scope="prenet", reuse=None):
       A 3D tensor of shape [N, T, num_units/2].
     '''
     with tf.variable_scope(scope, reuse=reuse):
-        outputs = tf.layers.dense(inputs, units=hp.embed_size, activation=tf.nn.relu, name="dense1")
+        outputs =  tf.layers.dense(inputs, units=hp.embed_size, activation=tf.nn.relu, name="dense1")
         outputs = tf.nn.dropout(outputs, keep_prob=.5 if is_training==True else 1., name="dropout1")
         outputs = tf.layers.dense(outputs, units=hp.embed_size//2, activation=tf.nn.relu, name="dense2")
         outputs = tf.nn.dropout(outputs, keep_prob=.5 if is_training==True else 1., name="dropout2") 
-    return outputs # (N, T, num_units/2)
+    return outputs # (N, T, embed_size/2)
 
+def pre_spectro(inputs, is_training=True, scope="pre_spec", reuse=None):
+    '''convert spectrogram into a larger dimension.
+    hp.embed_size is still used but meaning transform n_mels to more dimensions
+    Args:
+      inputs: A 3D tensor of shape [N, T, hp.n_mels]. spectrogram
+      is_training: A boolean.
+      scope: Optional scope for `variable_scope`.  
+      reuse: Boolean, whether to reuse the weights of a previous layer
+        by the same name.
+        
+    Returns:
+      A 3D tensor of shape [N, T, num_units/2].
+    '''
+    with tf.variable_scope(scope, reuse=reuse):
+        outputs =  tf.layers.dense(inputs, units=hp.embed_size, activation=tf.nn.relu, name="pre_dense1")
+        outputs = tf.nn.dropout(outputs, keep_prob=.5 if is_training==True else 1., name="pre_dropout1")
+    return outputs # (N, T, embed_size)
+
+def FC_layer(inputs, is_training=True, scope="FC_layer", reuse=None):
+    with tf.variable_scope(scope, reuse=reuse):
+        outputs = tf.layers.fully_connected(inputs, units=hp.latent_dim1, activation=tf.nn.relu, name='FL_enc')
+    
 def highwaynet(inputs, num_units=None, scope="highwaynet", reuse=None):
     '''Highway networks, see https://arxiv.org/abs/1505.00387
-
+    output = H(x, w_h) * T(x, wt) + x * C(x, wc)
     Args:
       inputs: A 3D tensor of shape [N, T, W].
       num_units: An int or `None`. Specifies the number of units in the highway layer

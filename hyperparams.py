@@ -11,7 +11,7 @@ class Hyperparams:
     sanity_check = True
     
     # data
-    text_file = 'WEB/text.csv'
+    text_file = 'WEB/sound_files.csv'
     sound_fpath = 'WEB'
     max_len = 100 if not sanity_check else 30 # maximum length of text
     min_len = 10 if not sanity_check else 20 # minimum length of text
@@ -29,7 +29,7 @@ class Hyperparams:
     use_log_magnitude = True # if False, use magnitude
     
     # model
-    embed_size = 256 # alias = E
+    embed_size = 1024 # alias = E, since dealing with spectrogram, there is no embedding space. so just enlarge the size from length*n_mels -- length*embed_size
     encoder_num_banks = 16
     decoder_num_banks = 8
     num_highwaynet_blocks = 4
