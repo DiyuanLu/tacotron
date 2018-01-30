@@ -9,7 +9,7 @@ from __future__ import print_function
 import copy
 
 import librosa
-
+import ipdb
 from hyperparams import Hyperparams as hp
 import numpy as np
 import tensorflow as tf
@@ -36,6 +36,7 @@ def get_spectrograms(sound_file):
     use_log_magnitude = True # if False, use magnitude
     '''
     # Loading sound file
+    ipdb.set_trace()
     y, sr = librosa.load(sound_file, sr=hp.sr) # or set sr to hp.sr.
     
     # stft. D: (1+n_fft//2, T)
@@ -53,7 +54,7 @@ def get_spectrograms(sound_file):
     # mel spectrogram
     S = librosa.feature.melspectrogram(S=power, n_mels=hp.n_mels) #(n_mels, T)
 
-    return np.transpose(S.astype(np.float32)), np.transpose(magnitude.astype(np.float32)) # (T, n_mels), (T, 1+n_fft/2)
+    return np.transpose(S.astype(np.float32)), np.transpose(magnitude.astype(np.float32)), np.transpose(S.shape)# (T, n_mels), (T, 1+n_fft/2)
             
 def shift_by_one(inputs):
     '''Shifts the content of `inputs` to the right by one 

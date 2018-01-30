@@ -36,7 +36,7 @@ def encode(inputs, is_training=True, scope="encoder", reuse=None):
         # Character Embedding  N seqs 
         #inputs = mod.embed(inputs, len(char2idx), hp.embed_size) # (N, T, E) shape=(32, ?, 256)
         # Encoder pre-net: dense(E)--dropout--dense(E/2)--dropout
-        ipdb.set_trace()
+        #ipdb.set_trace()
         inputs = mod.pre_spectro(inputs, is_training=is_training)   # (N, T, E)
         prenet_out = mod.prenet(inputs, is_training=is_training) # (N, T, E/2)
         
@@ -83,7 +83,7 @@ def decode1(decoder_inputs, memory, is_training=True, scope="decoder1", reuse=No
     '''
     with tf.variable_scope(scope, reuse=reuse):
         # Decoder pre-net
-        ipdb.set_trace()
+        #ipdb.set_trace()
         dec = mod.prenet(decoder_inputs, is_training=is_training) # (N, T', E/2)
         
         # Attention RNN

@@ -8,10 +8,11 @@ https://www.github.com/kyubyong/tacotron
 class Hyperparams:
     '''Hyper parameters'''
     # mode
-    sanity_check = True
+    sanity_check = False
     
     # data
     text_file = 'WEB/sound_files.csv'
+    logdir = 'logdir_s'
     sound_fpath = 'WEB'
     max_len = 100 if not sanity_check else 30 # maximum length of text
     min_len = 10 if not sanity_check else 20 # minimum length of text
@@ -40,7 +41,7 @@ class Hyperparams:
     lr = 0.0005 # Paper => Exponential decay
     logdir = "logdir" if not sanity_check else "logdir_s"
     outputdir = 'samples' if not sanity_check else "samples_s"
-    batch_size = 32
+    batch_size = 16
     num_epochs = 10000 if not sanity_check else 40 # Paper => 2M global steps!
     loss_type = "l2" # Or you can test "l2"
     num_samples = 32

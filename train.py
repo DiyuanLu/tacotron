@@ -42,6 +42,7 @@ class Graph:
             
             with tf.variable_scope("net"):
                 #### Encoder
+                ipdb.set_trace()
                 self.memory = net.encode(self.spectro, is_training=is_training) # (N, T, E)
                 
                 #### Decoder
@@ -60,6 +61,7 @@ class Graph:
                     self.loss2 = tf.squared_difference(self.outputs2, self.magnit)
                 
                 # Target masking
+                ### mask the loss with shape of the input length
                 if hp.target_zeros_masking:
                     self.loss1 *= tf.to_float(tf.not_equal(self.spectro, 0.))
                     self.loss2 *= tf.to_float(tf.not_equal(self.magnit, 0.))
